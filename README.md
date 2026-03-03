@@ -194,6 +194,24 @@ All protocol code is in [`app/src/main/kotlin/com/euhomy/fridge/ble/`](app/src/m
 
 ---
 
+## Error codes (display-only)
+
+The fridge displays error codes on its physical front panel. These codes are **not transmitted via BLE** — no Data Point is pushed when an error occurs. The panel shows the code locally; the phone app receives no indication.
+
+| Code | Meaning |
+|---|---|
+| E1 | Battery overvoltage |
+| E2 | Fan motor fault |
+| E3 | Temperature instability |
+| E4 | Compressor fault |
+| E5 | PCB fault |
+| E6 | Temperature sensor fault |
+
+> Confirmed by live BLE captures with E6 (sensor fault) active: only the normal status DPs
+> (temperature, battery, mode…) were received — no fault DP appeared at any point.
+
+---
+
 ## License
 
 MIT — do whatever you want with it.
