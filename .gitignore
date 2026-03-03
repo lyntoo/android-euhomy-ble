@@ -1,0 +1,18 @@
+# Android build output
+build/
+app/build/
+.gradle/
+
+# Android SDK path (machine-specific, never commit)
+local.properties
+
+# Private flavor — contains personal device credentials, NEVER commit
+app/src/private/
+
+# Private APK — built from personal credentials, NEVER commit
+apks/euhomy-ble-private.apk
+
+# IDE files
+.idea/
+*.iml
+.DS_Store
