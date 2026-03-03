@@ -9,8 +9,9 @@ local.properties
 # Private flavor — contains personal device credentials, NEVER commit
 app/src/private/
 
-# Private APK — built from personal credentials, NEVER commit
+# Private APKs — built from personal credentials, NEVER commit
 apks/euhomy-ble-private.apk
+apks/euhomy-private.apk
 
 # IDE files
 .idea/

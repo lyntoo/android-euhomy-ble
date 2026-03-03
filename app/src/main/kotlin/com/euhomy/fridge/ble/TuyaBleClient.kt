@@ -462,6 +462,17 @@ class TuyaBleClient(
         Log.d(TAG, "DP update: ${dps.map { "${it.dpId}=${it.value}" }}")
         withContext(Dispatchers.Main) {
             var state = _fridgeState.value
+            // Record every DP received (including unknowns) for debug display in the UI.
+            val newRaw = state.rawDps.toMutableMap()
+            for (dp in dps) {
+                val valStr = when (val v = dp.value) {
+                    is ByteArray -> v.joinToString("") { "%02x".format(it) }
+                    is Boolean   -> if (v) "true" else "false"
+                    else         -> v.toString()
+                }
+                newRaw[dp.dpId] = "type=0x%02x val=%s".format(dp.dpType, valStr)
+            }
+            state = state.copy(rawDps = newRaw)
             for (dp in dps) {
                 // Device sends ENUM DPs as raw bytes: 0x00, 0x01, 0x02.
                 // decodeAllDPs decodes them as UTF-8 → "\u0000", "\u0001", "\u0002".

@@ -270,6 +270,9 @@ fun FridgeScreen(
                     }
                 }
 
+                // ── Error code reference (private flavor only) ────────────────
+                ErrorCodesPanel()
+
                 // ── Reconnect button ──────────────────────────────────────────
                 if (connState is ConnectionState.Disconnected ||
                     connState is ConnectionState.Error) {

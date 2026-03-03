@@ -13,6 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,6 +29,10 @@ fun TemperatureSlider(
     enabled:    Boolean = true,
     modifier:   Modifier = Modifier,
 ) {
+    // Local visual state during drag — BLE command sent only on finger release.
+    var dragValue by remember(setpoint) { mutableFloatStateOf(setpoint.toFloat()) }
+    val displayTemp = dragValue.toInt()
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text  = "Target temperature",
@@ -43,12 +51,13 @@ fun TemperatureSlider(
             }
 
             Slider(
-                value         = setpoint.toFloat(),
-                onValueChange = { onChanged(it.toInt()) },
-                valueRange    = TempLimits.MIN_C.toFloat()..TempLimits.MAX_C.toFloat(),
-                steps         = TempLimits.MAX_C - TempLimits.MIN_C - 1,
-                enabled       = enabled,
-                modifier      = Modifier.weight(1f),
+                value                 = dragValue,
+                onValueChange         = { dragValue = it },          // visual only
+                onValueChangeFinished = { onChanged(dragValue.toInt()) }, // BLE on release
+                valueRange            = TempLimits.MIN_C.toFloat()..TempLimits.MAX_C.toFloat(),
+                steps                 = TempLimits.MAX_C - TempLimits.MIN_C - 1,
+                enabled               = enabled,
+                modifier              = Modifier.weight(1f),
             )
 
             IconButton(
@@ -59,7 +68,7 @@ fun TemperatureSlider(
             }
         }
         Text(
-            text      = "${setpoint}°C",
+            text      = "${displayTemp}°C",
             style     = MaterialTheme.typography.headlineMedium,
             color     = MaterialTheme.colorScheme.primary,
             modifier  = Modifier

@@ -18,6 +18,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,9 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.euhomy.fridge.data.CredentialsStore
 import com.euhomy.fridge.data.DeviceCredentials
 import com.euhomy.fridge.data.PreferencesRepository
+import com.euhomy.fridge.viewmodel.FridgeViewModel
 
 /**
  * Debug-flavor settings screen — always accessible (not gated behind first-launch).
@@ -44,12 +47,14 @@ import com.euhomy.fridge.data.PreferencesRepository
 fun DebugSettingsScreen(
     onNavigateToSetup: () -> Unit,
     onBack:            () -> Unit,
+    vm: FridgeViewModel = viewModel(),
 ) {
-    val context = LocalContext.current
-    val store   = remember { CredentialsStore(context) }
-    val prefs   = remember { PreferencesRepository(context) }
-    var creds   by remember { mutableStateOf(store.load()) }
-    var showF   by remember { mutableStateOf(prefs.showFahrenheit) }
+    val context   = LocalContext.current
+    val store     = remember { CredentialsStore(context) }
+    val prefs     = remember { PreferencesRepository(context) }
+    var creds     by remember { mutableStateOf(store.load()) }
+    var showF     by remember { mutableStateOf(prefs.showFahrenheit) }
+    val rawDps    by vm.fridgeState.collectAsState()
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("[DEBUG] Settings") }) }
@@ -104,6 +109,18 @@ fun DebugSettingsScreen(
                 ),
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("Clear credentials") }
+
+            Spacer(Modifier.height(8.dp))
+
+            // ── Raw DPs received from device ─────────────────────────────────
+            Text("Raw DPs (live)", style = MaterialTheme.typography.titleLarge)
+            if (rawDps.rawDps.isEmpty()) {
+                Text("No DPs received yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                rawDps.rawDps.entries.sortedBy { it.key }.forEach { (id, value) ->
+                    CredentialRow("DP $id", value)
+                }
+            }
 
             Spacer(Modifier.height(8.dp))
 

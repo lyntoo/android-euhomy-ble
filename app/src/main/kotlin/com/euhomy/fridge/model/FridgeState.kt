@@ -23,6 +23,8 @@ data class FridgeState(
     val batteryProt:    String?  = null,   // "l" | "m" | "h"
     /** Raw fault bitmap. DP when identified. */
     val faultBitmap:    Long?    = null,
+    /** All raw DPs received from the device, keyed by DP ID. Used for debug/discovery. */
+    val rawDps:         Map<Int, String> = emptyMap(),
 ) {
     /** Battery voltage in volts (convenience). */
     val batteryVolts: Float? get() = batteryMv?.let { it / 1000f }
