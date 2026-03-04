@@ -7,6 +7,9 @@ with no cloud, no proprietary app, no internet required**.
 > **See also:** [ha-euhomy-ble](https://github.com/lyntoo/ha-euhomy-ble) —
 > Home Assistant integration for the same device.
 
+<img width="1080" height="2460" alt="cfee3aef-f587-48ec-9cc8-881565d3782d" src="https://github.com/user-attachments/assets/d998d8ac-8f6f-4be2-9bf6-d956b004873b" />
+
+
 ---
 
 ## Why this app?
