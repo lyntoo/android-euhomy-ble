@@ -53,6 +53,7 @@ private val CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 class TuyaBleClient(
     private val context: Context,
     private val credentials: DeviceCredentials,
+    initialState: FridgeState = FridgeState(),
 ) {
     // ── Keys ──────────────────────────────────────────────────────────────────
     private val localKey6: ByteArray = credentials.localKey.take(6).toByteArray(Charsets.US_ASCII)
@@ -63,7 +64,7 @@ class TuyaBleClient(
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
-    private val _fridgeState = MutableStateFlow(FridgeState())
+    private val _fridgeState = MutableStateFlow(initialState)
     val fridgeState: StateFlow<FridgeState> = _fridgeState.asStateFlow()
 
     // ── Internal state ────────────────────────────────────────────────────────
@@ -306,8 +307,18 @@ class TuyaBleClient(
             }
             reconnectAttempts = 0
 
-            // Query initial state
+            // Query initial state, then retry every 5 s until we have the temperature
+            // (device pushes DPs only on change, so a single query may not be enough).
             sendCommand(TuyaCmd.DEVICE_STATUS, ByteArray(0))
+            scope.launch {
+                repeat(6) {
+                    delay(5_000)
+                    if (isConnected && _fridgeState.value.currentTempC == null) {
+                        Log.d(TAG, "Temperature not yet received — retrying DEVICE_STATUS")
+                        sendCommand(TuyaCmd.DEVICE_STATUS, ByteArray(0))
+                    }
+                }
+            }
 
             // Start heartbeat
             startHeartbeat()

@@ -10,6 +10,7 @@ import com.euhomy.fridge.ble.TuyaDP
 import com.euhomy.fridge.ble.TempLimits
 import com.euhomy.fridge.data.CredentialsStore
 import com.euhomy.fridge.data.DefaultCredentials
+import com.euhomy.fridge.data.PreferencesRepository
 import com.euhomy.fridge.model.ConnectionState
 import com.euhomy.fridge.model.FridgeState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,10 +20,16 @@ import kotlinx.coroutines.launch
 class FridgeViewModel(app: Application) : AndroidViewModel(app) {
 
     private val store = CredentialsStore(app)
+    private val prefs = PreferencesRepository(app)
 
     // Use stored credentials; fall back to baked-in preset (private build only).
     private val credentials = store.load() ?: DefaultCredentials.preset
-    private val client: TuyaBleClient? = credentials?.let { TuyaBleClient(app, it) }
+
+    // Seed the initial state with the last persisted setpoint so the slider
+    // shows the correct value immediately — before the device pushes its state.
+    private val client: TuyaBleClient? = credentials?.let {
+        TuyaBleClient(app, it, FridgeState(setpointC = prefs.lastSetpointC))
+    }
 
     val connectionState: StateFlow<ConnectionState> =
         client?.connectionState ?: MutableStateFlow(ConnectionState.Disconnected)
@@ -34,6 +41,12 @@ class FridgeViewModel(app: Application) : AndroidViewModel(app) {
     init {
         if (client != null) {
             viewModelScope.launch { client.connect() }
+            // Persist setpoint whenever the device confirms a new value.
+            viewModelScope.launch {
+                fridgeState.collect { state ->
+                    state.setpointC?.let { prefs.lastSetpointC = it }
+                }
+            }
         }
     }
 
